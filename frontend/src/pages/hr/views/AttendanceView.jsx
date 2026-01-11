@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import * as Data from './DashboardData';
 import { icons } from './Icons';
 
-const AttendanceView = ({ handleViewAttendanceDetail }) => {
+const AttendanceView = ({ handleViewAttendanceDetail, attendance = [], departments = [] }) => {
   const [attendanceFilter, setAttendanceFilter] = useState('all');
   const [attendanceSort, setAttendanceSort] = useState('department');
 
+  // Source data - fallback to static if API didn't return anything yet
+  const source = attendance && attendance.length ? attendance : Data.attendanceEmployees;
+
   // Filter and sort employees
-  const filteredEmployees = Data.attendanceEmployees.filter(emp => {
+  const filteredEmployees = useMemo(() => source.filter(emp => {
     if (attendanceFilter === 'all') return true;
     if (attendanceFilter === 'absent') return emp.status === 'absent';
     if (attendanceFilter === 'on-leave') return emp.status === 'on-leave';
@@ -18,15 +21,27 @@ const AttendanceView = ({ handleViewAttendanceDetail }) => {
     if (attendanceFilter === 'night') return emp.shift === 'Night';
     return emp.department === attendanceFilter;
   }).sort((a, b) => {
-    if (attendanceSort === 'department') return a.department.localeCompare(b.department);
-    if (attendanceSort === 'name') return a.name.localeCompare(b.name);
-    if (attendanceSort === 'leaves') return b.totalLeaves - a.totalLeaves;
+    if (attendanceSort === 'department') return (a.department || '').localeCompare(b.department || '');
+    if (attendanceSort === 'name') return (a.name || '').localeCompare(b.name || '');
+    if (attendanceSort === 'leaves') return (b.totalLeaves || 0) - (a.totalLeaves || 0);
     return 0;
-  });
+  }), [source, attendanceFilter, attendanceSort]);
 
-  const employeeLeaderboard = [...Data.attendanceEmployees]
-    .sort((a, b) => a.totalLeaves - b.totalLeaves)
-    .slice(0, 5);
+  const employeeLeaderboard = useMemo(() => {
+    return [...source]
+      .sort((a, b) => (a.totalLeaves || 0) - (b.totalLeaves || 0))
+      .slice(0, 5);
+  }, [source]);
+
+  // Department rankings - derive from departments prop or fallback
+  const departmentStats = departments && departments.length ? departments.map((d, i) => ({
+    rank: i + 1,
+    department: d.name,
+    present: d.employees || 0,
+    total: d.employees || 0,
+    percentage: d.employees || 0,
+    trend: 0
+  })) : Data.departmentAttendanceStats;
 
   return (
     <div className="attendance-view">
@@ -48,7 +63,7 @@ const AttendanceView = ({ handleViewAttendanceDetail }) => {
             </svg>
           </div>
           <div className="stat-content">
-            <div className="stat-value-large">231</div>
+            <div className="stat-value-large">{source.filter(s => s.status === 'present').length}</div>
             <div className="stat-label">Present Today</div>
           </div>
         </div>
@@ -62,7 +77,7 @@ const AttendanceView = ({ handleViewAttendanceDetail }) => {
             </svg>
           </div>
           <div className="stat-content">
-            <div className="stat-value-large">4</div>
+            <div className="stat-value-large">{source.filter(s => s.status === 'absent').length}</div>
             <div className="stat-label">Absent</div>
           </div>
         </div>
@@ -77,7 +92,7 @@ const AttendanceView = ({ handleViewAttendanceDetail }) => {
             </svg>
           </div>
           <div className="stat-content">
-            <div className="stat-value-large">12</div>
+            <div className="stat-value-large">{source.filter(s => s.status === 'on-leave').length}</div>
             <div className="stat-label">On Leave</div>
           </div>
         </div>
@@ -90,7 +105,7 @@ const AttendanceView = ({ handleViewAttendanceDetail }) => {
             </svg>
           </div>
           <div className="stat-content">
-            <div className="stat-value-large">8</div>
+            <div className="stat-value-large">{source.filter(s => s.status === 'late').length}</div>
             <div className="stat-label">Late Arrivals</div>
           </div>
         </div>
@@ -102,7 +117,7 @@ const AttendanceView = ({ handleViewAttendanceDetail }) => {
         <div className="leaderboard-card">
           <h3>🏆 Department Attendance Rankings</h3>
           <div className="leaderboard-list">
-            {Data.departmentAttendanceStats.map((dept) => (
+            {departmentStats.map((dept) => (
               <div key={dept.department} className={`leaderboard-item rank-${dept.rank}`}>
                 <div className="rank-badge">{dept.rank}</div>
                 <div className="leaderboard-info">

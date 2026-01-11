@@ -270,11 +270,15 @@ const HRDashboard = () => {
           )}
 
           {/* Departments View */}
-          {activeSection === 'departments' && <DepartmentsView />}
+          {activeSection === 'departments' && (
+            <DepartmentsView departments={departments} />
+          )}
 
           {/* Attendance View */}
           {activeSection === 'attendance' && (
             <AttendanceView
+              attendance={attendance}
+              departments={departments}
               handleViewAttendanceDetail={handleViewAttendanceDetail}
             />
           )}

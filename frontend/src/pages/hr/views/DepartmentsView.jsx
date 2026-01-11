@@ -1,8 +1,9 @@
 import React from 'react';
 import * as Data from './DashboardData';
 
-const DepartmentsView = () => {
-  const pieSegments = Data.calculatePieSegments(Data.departments);
+const DepartmentsView = ({ departments = [] }) => {
+  const depts = departments && departments.length ? departments : Data.departments;
+  const pieSegments = Data.calculatePieSegments(depts);
 
   return (
     <div className="section-content">
@@ -25,7 +26,7 @@ const DepartmentsView = () => {
           </svg>
         </div>
         <div className="departments-list">
-          {Data.departments.map(dept => (
+          {depts.map(dept => (
             <div key={dept.name} className="dept-item">
               <div className="dept-info"><div className="dept-color" style={{ backgroundColor: dept.color }}></div><div>{dept.name}</div></div>
               <div>{dept.employees}</div>
