@@ -10,6 +10,7 @@ import AttendanceView from './views/AttendanceView';
 import LeaveView from './views/LeaveView';
 import AttendanceDetailModal from './views/AttendanceDetailModal';
 import { getCurrentUser, getHRUser } from '../../services/auth';
+import { approveLeaveRequest, rejectLeaveRequest } from '../../services/hr'; // NEW IMPORT
 
 const HRDashboard = () => {
   // ============================================
@@ -38,6 +39,9 @@ const HRDashboard = () => {
   const [currentUser, setCurrentUser] = useState(Data.currentUser);
   // HR user (fetched from users table where role = 'hr')
   const [hrUser, setHrUser] = useState(null);
+
+  // Track which leave request is being updated to disable buttons while processing
+  const [processingLeaveId, setProcessingLeaveId] = useState(null);
 
   useEffect(() => {
     getCurrentUser()
@@ -79,10 +83,30 @@ const HRDashboard = () => {
   // ============================================
   // EVENT HANDLERS
   // ============================================
-  const handleLeaveAction = (id, action) => {
-    setLeaveRequests(leaveRequests.map(req =>
-      req.id === id ? { ...req, status: action } : req
-    ));
+  // Replace local-only handler with an async, backend-updating version
+  const handleLeaveAction = async (id, action) => {
+    // action expected to be 'approved' or 'rejected' (case-insensitive)
+    try {
+      setProcessingLeaveId(id);
+      // normalize action for case-insensitive callers
+      const normalized = String(action).toLowerCase();
+      // call the appropriate service
+      if (normalized === 'approved') {
+        await approveLeaveRequest(id);
+      } else {
+        await rejectLeaveRequest(id);
+      }
+      // update local UI after successful backend update (use capitalized status for display)
+      setLeaveRequests(prev =>
+        prev.map(req => (req.id === id ? { ...req, status: normalized === 'approved' ? 'Approved' : 'Rejected' } : req))
+      );
+    } catch (err) {
+      console.error('Failed to update leave request', err);
+      alert('Failed to update leave request. Please try again.');
+      // optionally refetch leave requests or revert optimistic UI
+    } finally {
+      setProcessingLeaveId(null);
+    }
   };
 
   const handleViewEmployee = (employee) => {
@@ -254,6 +278,7 @@ const HRDashboard = () => {
               departments={departments}
               handleViewEmployee={handleViewEmployee}
               handleLeaveAction={handleLeaveAction}
+              processingLeaveId={processingLeaveId} // NEW PROP
               setActiveSection={setActiveSection}
               currentUser={currentUser}
               hrUser={hrUser}
@@ -288,6 +313,7 @@ const HRDashboard = () => {
             <LeaveView
               leaveRequests={leaveRequests}
               handleLeaveAction={handleLeaveAction}
+              processingLeaveId={processingLeaveId} // NEW PROP
             />
           )}
 
