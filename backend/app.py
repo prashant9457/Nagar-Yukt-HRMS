@@ -8,6 +8,7 @@ from routes.auth import auth_bp
 from routes.candidate import candidate_bp
 from routes.admin import admin_bp
 from routes.hr import hr_bp
+from routes.employee import employee_bp
 
 import os
 
@@ -35,6 +36,7 @@ app.register_blueprint(auth_bp)
 app.register_blueprint(candidate_bp)
 app.register_blueprint(admin_bp)
 app.register_blueprint(hr_bp)
+app.register_blueprint(employee_bp)
 
 # -----------------------
 # Serve React SPA

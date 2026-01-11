@@ -33,13 +33,17 @@ function Login() {
         return;
       }
 
-      // Role-based navigation
-      if (data.role === "candidate") {
+      // Persist role and navigate based on role (case-insensitive)
+      sessionStorage.setItem('role', data.role);
+      const role = (data.role || '').toLowerCase();
+      if (role === "candidate") {
         navigate("/candidate/dashboard");
-      } else if (data.role === "admin") {
+      } else if (role === "admin") {
         navigate("/admin/dashboard");
-      } else if (data.role === "HR") {
+      } else if (role === "hr") {
         navigate("/hr/dashboard");
+      } else if (role === "employee") {
+        navigate("/employee/dashboard");
       } else {
         setError("Unknown user role");
       }

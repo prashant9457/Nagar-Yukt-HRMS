@@ -11,6 +11,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import HRDashboard from "./pages/hr/Dashboard";
 import AdminDashboard from "./pages/admin/Dashboard";
 import CandidateDashboard from "./pages/candidate/Dashboard";
+import EmployeeDashboard from "./pages/employee/EmployeeDashboard";
 
 function App() {
   return (
@@ -23,7 +24,7 @@ function App() {
       <Route
         path="/hr/dashboard"
         element={
-          <ProtectedRoute role="HR">
+          <ProtectedRoute role="hr">
             <HRDashboard />
           </ProtectedRoute>
         }
@@ -45,6 +46,16 @@ function App() {
         element={
           <ProtectedRoute role="candidate">
             <CandidateDashboard />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Employee Dashboard */}
+      <Route
+        path="/employee/dashboard"
+        element={
+          <ProtectedRoute role="employee">
+            <EmployeeDashboard />
           </ProtectedRoute>
         }
       />

@@ -14,6 +14,9 @@ const menuConfig = {
     { label: "Create Employee", path: "/hr/create-employee" },
     { label: "Transfer Employee", path: "/hr/transfer" },
   ],
+  employee: [
+    { label: "Dashboard", path: "/employee/dashboard" }
+  ]
 };
 
 function Sidebar() {
